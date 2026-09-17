@@ -1,0 +1,26 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Node
+web/node_modules/
+web/dist/
+web/coverage/
+npm-debug.log*
+
+# Go
+server/bin/
+*.test
+*.out
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local certificates
+*.pem
+*.key
