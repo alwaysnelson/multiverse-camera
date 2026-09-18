@@ -224,6 +224,9 @@ func TestPipelineTransform(t *testing.T) {
 	if fake.editReq.Model != "image-x" || fake.editReq.Size != "1024x1536" || fake.editReq.Quality != "low" {
 		t.Errorf("unexpected edit request: %+v", fake.editReq)
 	}
+	if fake.editReq.MIMEType != "image/jpeg" {
+		t.Errorf("edit request must carry the image MIME type, got %q", fake.editReq.MIMEType)
+	}
 	if fake.editReq.InputFidelity != "high" {
 		t.Error("edits must request high input fidelity to keep the pose")
 	}

@@ -133,6 +133,7 @@ func (p *Pipeline) Transform(ctx context.Context, in Input) (Result, error) {
 		Prompt:        BuildEditPrompt(plan),
 		Image:         in.Image,
 		Filename:      in.Filename,
+		MIMEType:      in.MIMEType,
 		Size:          sizeFor(in.Image),
 		Quality:       p.opts.ImageQuality,
 		InputFidelity: "high",

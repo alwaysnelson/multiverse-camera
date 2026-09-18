@@ -16,6 +16,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"strings"
 	"time"
 )
@@ -164,6 +165,7 @@ type EditRequest struct {
 	Prompt        string
 	Image         []byte
 	Filename      string
+	MIMEType      string // image/jpeg or image/png; OpenAI rejects untyped parts
 	Size          string // e.g. 1024x1024, 1536x1024, 1024x1536
 	Quality       string // low, medium, high
 	InputFidelity string // low or high; high keeps faces and details closer to the source
@@ -202,7 +204,16 @@ func (c *Client) Edit(ctx context.Context, req EditRequest) (EditResult, error) 
 	if filename == "" {
 		filename = "source.jpg"
 	}
-	part, err := w.CreateFormFile("image", filename)
+	mimeType := req.MIMEType
+	if mimeType == "" {
+		mimeType = "image/jpeg"
+	}
+	// CreateFormFile would label the part application/octet-stream, which the
+	// API rejects, so build the part header by hand with the real image type.
+	header := make(textproto.MIMEHeader)
+	header.Set("Content-Disposition", fmt.Sprintf(`form-data; name="image"; filename="%s"`, quoteEscape(filename)))
+	header.Set("Content-Type", mimeType)
+	part, err := w.CreatePart(header)
 	if err != nil {
 		return EditResult{}, fmt.Errorf("encode image part: %w", err)
 	}
@@ -244,6 +255,11 @@ func (c *Client) Edit(ctx context.Context, req EditRequest) (EditResult, error) 
 		mime = "image/webp"
 	}
 	return EditResult{Image: img, MIMEType: mime}, nil
+}
+
+// quoteEscape makes a filename safe inside a quoted multipart header value.
+func quoteEscape(s string) string {
+	return strings.NewReplacer("\\", "\\\\", `"`, `\"`).Replace(s)
 }
 
 // do executes the request, handles auth and error envelopes, and decodes the

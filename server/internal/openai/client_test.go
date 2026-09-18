@@ -113,6 +113,9 @@ func TestEdit(t *testing.T) {
 		if string(data) != "source" || header.Filename != "shot.jpg" {
 			t.Errorf("image part %q %q", data, header.Filename)
 		}
+		if ct := header.Header.Get("Content-Type"); ct != "image/png" {
+			t.Errorf("image part Content-Type = %q, want image/png (octet-stream is rejected upstream)", ct)
+		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString(rendered)}},
 		})
@@ -121,7 +124,7 @@ func TestEdit(t *testing.T) {
 
 	c := New("k", srv.URL)
 	res, err := c.Edit(context.Background(), EditRequest{
-		Model: "image-x", Prompt: "do it", Image: []byte("source"), Filename: "shot.jpg",
+		Model: "image-x", Prompt: "do it", Image: []byte("source"), Filename: "shot.jpg", MIMEType: "image/png",
 		Size: "1024x1536", Quality: "high", InputFidelity: "high", OutputFormat: "jpeg",
 	})
 	if err != nil {
